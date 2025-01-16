@@ -1,21 +1,22 @@
 pub struct SimpleColorMap {
     colors: Vec<[u8; 3]>,
-    props: Vec<f64>,
+    thresholds: Vec<f64>,
 }
 
 impl SimpleColorMap {
-    pub fn new(colors: Vec<[u8; 3]>, props: Vec<f64>) -> SimpleColorMap {
-        SimpleColorMap { colors, props }
+    pub fn new(colors: Vec<[u8; 3]>, thresholds: Vec<f64>) -> SimpleColorMap {
+        SimpleColorMap { colors, thresholds }
     }
 
-    pub fn get_color(&self, prop: f64) -> [u8; 3] {
-        let (index_a, index_b) = get_surounding_index(&self.props, prop);
+    pub fn get_color(&self, threshold: f64) -> [u8; 3] {
+        let (index_a, index_b) = get_surounding_index(&self.thresholds, threshold);
         if index_a == index_b {
             return self.colors[index_a];
         }
         let color_a = self.colors[index_a];
         let color_b = self.colors[index_b];
-        let prop = (prop - self.props[index_a]) / (self.props[index_b] - self.props[index_a]);
+        let prop = (threshold - self.thresholds[index_a])
+            / (self.thresholds[index_b] - self.thresholds[index_a]);
         lerp_color(color_a, color_b, prop.clamp(0.0, 1.0))
     }
 }
@@ -28,15 +29,15 @@ fn lerp_color(c1: [u8; 3], c2: [u8; 3], prop: f64) -> [u8; 3] {
     ]
 }
 
-fn get_surounding_index(props: &[f64], target: f64) -> (usize, usize) {
-    if target <= props[0] {
+fn get_surounding_index(thresholds: &[f64], target: f64) -> (usize, usize) {
+    if target <= thresholds[0] {
         (0, 0)
-    } else if target >= props[props.len() - 1] {
-        (props.len() - 1, props.len() - 1)
+    } else if target >= thresholds[thresholds.len() - 1] {
+        (thresholds.len() - 1, thresholds.len() - 1)
     } else {
         let mut index = 1;
-        for (i, prop) in props.iter().enumerate() {
-            if target < *prop {
+        for (i, threshold) in thresholds.iter().enumerate() {
+            if target < *threshold {
                 index = i;
                 break;
             }
